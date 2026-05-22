@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "id": "example-source-001",
+      "type": "file",
+      "title": "Example Internal Memo",
+      "path": "knowledge/raw/example-internal-memo.md",
+      "owner": "team",
+      "status": "approved",
+      "notes": "Replace this with a real source file."
+    }
+  ]
+}
