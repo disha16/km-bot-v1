@@ -35,7 +35,7 @@ If an answer cannot be grounded in the approved corpus, the bot should say what 
 
 ## Current Backend Capability: Secondary Market Research Planner
 
-The first backend tool creates a public-source-only research action plan from a problem statement. It is designed to break a broad market-research question into consultant-style workstreams, research questions, public source categories, source-use methods, expected outputs, and user inputs needed.
+The first backend tool creates a **public-source-only research action plan** from a problem statement. It is designed to break a broad market-research question into consultant-style workstreams, research questions, public source categories, source-use methods, expected outputs, and user inputs needed. It now incorporates VC/MBB-style rules from the training material: template selection, hypothesis-led workstreams, TAM triangulation, public comparables where relevant, explicit gap identification, and banned-source compliance.
 
 Run a local smoke test without calling an AI model:
 

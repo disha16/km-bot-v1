@@ -1,62 +1,81 @@
 # Research Planner Usage
 
-## What This Does
+The research planner creates a **public-source-only secondary market research action plan** from a problem statement. It does not conduct the research. It creates the workplan a researcher should execute.
 
-The research planner converts a problem statement into a public-source-only secondary research action plan. It is backend-only for now; there is no frontend. The first use case is `secondary_market_research`.
+## Quickstart
 
-Example problem statement:
-
-> Research the autonomous drone market in India.
-
-The tool returns a structured Markdown table with workstreams, questions to answer, public sources to use, how to use them, expected outputs, user comments or inputs needed, and priority.
-
-## Run With AI
-
-Set `OPENAI_API_KEY` in your environment, then run:
+Run the AI-backed planner:
 
 ```bash
 python scripts/create_research_plan.py "Research the autonomous drone market in India" --output outputs/drone_market_india.md
 ```
 
-You can add user context:
+Run deterministic mock mode for local smoke tests:
+
+```bash
+python scripts/create_research_plan.py "Research the autonomous drone market in India" --mock --output outputs/drone_market_india_mock.md
+```
+
+Add optional context:
 
 ```bash
 python scripts/create_research_plan.py \
-  "Research the autonomous drone market in India" \
-  --context "Audience is a founder evaluating B2B market entry over the next 24 months." \
-  --output outputs/drone_market_india.md
+  "Research the US home healthcare market" \
+  --context "Audience is a seed-stage founder evaluating a tech-enabled services platform. Focus on public information only." \
+  --output outputs/us_home_healthcare.md
 ```
 
-## Run A Local Smoke Test Without AI
+JSON output is also available:
 
 ```bash
-python scripts/create_research_plan.py "Research the autonomous drone market in India" --mock
+python scripts/create_research_plan.py "Research the US home healthcare market" --format json --output outputs/us_home_healthcare.json
 ```
 
-## Output Formats
+## What The Planner Produces
 
-Markdown is the default because it is easy to read and paste into a working document. JSON is available for programmatic use.
+The output is a Markdown file with a simple table.
 
-```bash
-python scripts/create_research_plan.py "Research the autonomous drone market in India" --format json --output outputs/drone_market_india.json
-```
-
-## Public-Information Constraint
-
-The planner is constrained to public information only. It should not recommend confidential client data, paid expert calls, private datasets, leaked material, or non-public company documents. If a private source would normally be useful, the planner should suggest a public proxy instead.
-
-## How To Make It More MBB-ish
-
-The planner should be trained through a combination of rules, examples, and rubrics. Add rules to define source discipline and decomposition structure. Add examples to teach your preferred style. Add rubrics to make your feedback reusable.
-
-A practical training loop is:
-
-| Step | Action |
+| Column | Meaning |
 | --- | --- |
-| 1 | Generate a plan for a real problem statement. |
-| 2 | Mark rows as strong, weak, missing, or too generic. |
-| 3 | Rewrite the weak parts in your preferred style. |
-| 4 | Save the before/after pair as a gold-standard example. |
-| 5 | Update the prompt contract only when the same issue appears repeatedly. |
+| Workstream | The major research module. |
+| Things To Be Answered | The specific questions the researcher must answer. |
+| Public Sources To Use | Public source categories or examples to use. |
+| How To Use Sources | The research method, triangulation method, or analysis approach. |
+| Expected Output | The artifact the researcher should create. |
+| User Comments / Inputs Needed | Scope, decision context, thresholds, or hypotheses the user should clarify. |
+| Priority | High, Medium, or Low. |
 
-Start with 5-10 gold-standard examples. Do not fine-tune until you have enough reviewed examples to see stable patterns.
+## Current Guardrails
+
+The planner is intentionally constrained for v1.
+
+| Guardrail | Rule |
+| --- | --- |
+| Public information only | The planner must not recommend private datasets, paid expert calls, leaked information, confidential client data, or non-public company documents. |
+| Banned low-confidence aggregators | The planner must not use or recommend Grand View Research, IMARC, or Future Market Insights. |
+| Research planning only | The planner should not invent facts or perform final analysis. It should design the workplan. |
+| MBB/VC-style quality bar | The planner should be hypothesis-led, MECE-ish, source-specific, and explicit about gaps. |
+
+## Style Rules Added From Training Material
+
+The planner has been updated to reflect the uploaded VC research-agent training document. The most important behaviors are:
+
+| Rule | Expected Behavior |
+| --- | --- |
+| Template selection | Identify whether the problem is a sector study, market-entry screen, investment thesis, company diligence, competitive landscape, pricing/economics study, or quick screen. |
+| TAM triangulation | For market sizing, require at least two triangulation paths and one bottom-up public proxy. |
+| Public comparables | When financial analysis matters, identify the need for 3-4 public comps or proxy comps and the relevant metrics. |
+| Moat discipline | Do not accept generic moat claims. Require evidence for switching costs, network effects, scale, data advantage, regulatory advantage, retention, or pricing power. |
+| Gap discipline | Identify what public desk research cannot answer and propose proxy signals. |
+
+## How To Train The Tool Further
+
+Use **rules + examples + review rubrics**.
+
+1. Generate first-pass plans for 10-20 realistic problem statements.
+2. Rewrite the weak rows the way you would as an ex-MBB reviewer.
+3. Save each corrected example in `examples/research_plan_training_examples.md`.
+4. Tag the failure mode, such as `too generic`, `weak public sources`, `missing buyer segmentation`, `no bottom-up sizing`, or `unclear user input`.
+5. Promote repeated corrections into explicit rules in `docs/playbooks/secondary_market_research.md` and the planner prompt.
+
+Fine-tuning is not the first step. Start with rules, retrieved examples, and a rubric. Consider fine-tuning only after collecting many reviewed examples and seeing stable failure patterns.
